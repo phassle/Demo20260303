@@ -9,6 +9,7 @@ RSpec.describe WorkOrder, type: :model do
 
   describe "validations" do
     it { is_expected.to validate_presence_of(:title) }
+    it { is_expected.to validate_presence_of(:description) }
     it { is_expected.to validate_inclusion_of(:status).in_array(%w[open in_progress completed cancelled]) }
     it { is_expected.to validate_inclusion_of(:priority).in_array(%w[low normal high urgent]) }
   end

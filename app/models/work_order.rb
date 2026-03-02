@@ -11,6 +11,5 @@ class WorkOrder < ApplicationRecord
   scope :unassigned, -> { where(assigned_to_id: nil) }
   scope :by_priority, -> { order(Arel.sql("CASE priority WHEN 'urgent' THEN 0 WHEN 'high' THEN 1 WHEN 'normal' THEN 2 WHEN 'low' THEN 3 END")) }
 
-  # BUG: description validation is missing!
-  # Tenants complain work orders are created without descriptions.
+  validates :description, presence: true
 end
