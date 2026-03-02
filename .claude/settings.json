@@ -5,7 +5,7 @@
         "matcher": "Write|Edit",
         "hooks": [
           {
-            "command": "docker compose exec -T web bundle exec rubocop --autocorrect --fail-level=error \"${FILE#$PWD/}\"",
+            "command": "bash -c 'FILE_PATH=$(jq -r .tool_input.file_path); REL_PATH=\"${FILE_PATH#$PWD/}\"; docker compose exec -T web bundle exec rubocop --autocorrect --fail-level=error \"$REL_PATH\"'",
             "timeout": 30
           }
         ]
