@@ -2,14 +2,15 @@ FactoryBot.define do
   factory :user do
     name { Faker::Name.name }
     email { Faker::Internet.unique.email }
-    role { "manager" }
+    role { 'manager' }
+    api_token { SecureRandom.hex(32) }
 
     trait :technician do
-      role { "technician" }
+      role { 'technician' }
     end
 
     trait :admin do
-      role { "admin" }
+      role { 'admin' }
     end
   end
 end
