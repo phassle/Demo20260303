@@ -16,10 +16,30 @@ A minimal Rails 7.1 property management app for workshop exercises.
 - RSpec + FactoryBot
 - Pundit (installed but not used yet)
 
+## Prerequisites
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running
+
+## Getting started
+
+```bash
+docker compose up -d
+```
+
+This starts PostgreSQL and the Rails app. First run takes a minute (installs gems + creates database).
+
+The API is available at **http://localhost:3000**.
+
 ## Commands
-- `bundle exec rspec` — run tests
-- `bin/rails server` — start dev server
-- `bin/rails console` — Rails console
+
+All commands run inside the `web` container:
+
+```bash
+docker compose exec web bundle exec rspec           # run tests
+docker compose exec web bundle exec rake db:seed    # seed data
+docker compose exec web bundle exec rake routes     # list routes
+docker compose logs -f web                           # follow logs
+docker compose down                                  # stop everything
+```
 
 ---
 

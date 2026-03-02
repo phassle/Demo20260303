@@ -1,0 +1,12 @@
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  pool: 5
+  url: <%= ENV.fetch("DATABASE_URL", "postgres://workshop:workshop@localhost:5432/workshop_development") %>
+
+development:
+  <<: *default
+
+test:
+  <<: *default
+  url: <%= ENV.fetch("DATABASE_URL_TEST", "postgres://workshop:workshop@localhost:5432/workshop_test") %>
