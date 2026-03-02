@@ -1,0 +1,25 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "command": "docker compose exec -T web bundle exec rubocop --autocorrect --fail-level=error \"${FILE#$PWD/}\"",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "command": "docker compose exec -T web bundle exec rspec && docker compose exec -T web bundle exec rubocop",
+            "timeout": 180
+          }
+        ]
+      }
+    ]
+  }
+}
