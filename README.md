@@ -323,6 +323,9 @@ Analyze this codebase and create an AGENTS.md file following these principles:
 4. Include file:line references instead of code snippets
 5. Assume linters handle code style — don't include formatting guidelines
 
+- Be extremely concise. Sacrifice grammar for concision.
+- At the end of each plan, list unresolved questions (if any).
+
 Additionally, extract patterns you observe into:
 - docs/architectural_patterns.md — patterns that appear in multiple files
 
