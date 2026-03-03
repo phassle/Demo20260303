@@ -1,12 +1,23 @@
 class ApplicationController < ActionController::API
-  # include Pundit::Authorization  # TODO: not yet enabled
+  include Pundit::Authorization
+
+  before_action :authenticate_user!
 
   rescue_from StandardError, with: :handle_internal_error
   rescue_from ActiveRecord::RecordNotFound, with: :handle_not_found
   rescue_from ActiveRecord::RecordInvalid, with: :handle_record_invalid
   rescue_from ActionController::ParameterMissing, with: :handle_parameter_missing
+  rescue_from Pundit::NotAuthorizedError, with: :handle_unauthorized
 
   private
+
+  def authenticate_user!
+    token = request.headers['Authorization']&.sub(/\ABearer /, '')
+    @current_user = User.find_by(api_token: token) if token
+    render json: { error: 'Unauthorized' }, status: :unauthorized unless @current_user
+  end
+
+  attr_reader :current_user
 
   def handle_not_found(exception)
     Rails.logger.warn("[NotFound] #{exception.message}")
@@ -21,6 +32,11 @@ class ApplicationController < ActionController::API
   def handle_parameter_missing(exception)
     Rails.logger.warn("[ParameterMissing] #{exception.message}")
     render json: { error: exception.message }, status: :bad_request
+  end
+
+  def handle_unauthorized(exception)
+    Rails.logger.warn("[Unauthorized] #{exception.message}")
+    render json: { error: 'Forbidden' }, status: :forbidden
   end
 
   def handle_internal_error(exception)
