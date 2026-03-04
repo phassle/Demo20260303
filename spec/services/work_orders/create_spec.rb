@@ -34,5 +34,20 @@ RSpec.describe WorkOrders::Create do
         expect(result.work_order.errors.full_messages).to include(/Title/)
       end
     end
+
+    context 'with invalid params (blank description)' do
+      let(:params) { { title: 'Fix door', description: '', priority: 'normal', property_id: property.id } }
+
+      it 'does not persist the work order' do
+        expect { described_class.new(params).call }.not_to change(WorkOrder, :count)
+      end
+
+      it 'returns a failure result with errors' do
+        result = described_class.new(params).call
+
+        expect(result.success?).to be false
+        expect(result.work_order.errors.full_messages).to include(/Description/)
+      end
+    end
   end
 end

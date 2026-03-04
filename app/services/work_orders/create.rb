@@ -1,6 +1,8 @@
 module WorkOrders
   class Create
-    Result = Struct.new(:success?, :work_order)
+    Result = Struct.new(:success, :work_order) do
+      def success? = success
+    end
 
     def initialize(params)
       @params = params

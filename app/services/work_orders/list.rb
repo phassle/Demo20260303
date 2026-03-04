@@ -5,6 +5,8 @@ module WorkOrders
     end
 
     def call
+      return [] if @property_id.blank?
+
       # NOTE: This has an N+1 query problem — no .includes() (issue #2, out of scope)
       WorkOrder.where(property_id: @property_id).map { |wo| serialize(wo) }
     end

@@ -38,5 +38,25 @@ RSpec.describe WorkOrders::List do
 
       expect(result.keys).to match_array(%i[id title status priority property tenant assigned_to])
     end
+
+    it 'includes assigned_to name when a user is assigned' do
+      create(:work_order, property: property, assigned_to: user)
+
+      result = described_class.new(property_id: property.id).call.first
+
+      expect(result[:assigned_to]).to eq(user.name)
+    end
+
+    it 'returns empty array for nil property_id' do
+      results = described_class.new(property_id: nil).call
+
+      expect(results).to eq([])
+    end
+
+    it 'returns empty array for nonexistent property_id' do
+      results = described_class.new(property_id: 0).call
+
+      expect(results).to eq([])
+    end
   end
 end
