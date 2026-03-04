@@ -20,9 +20,8 @@ RSpec.describe WorkOrders::Create do
       result = described_class.new(params).call
 
       expect(result.success?).to be(false)
+      expect(result.work_order.errors.full_messages).to include(/Title/, /Description/)
       expect(result.work_order).not_to be_persisted
-      expect(result.work_order.errors[:title]).to be_present
-      expect(result.work_order.errors[:description]).to be_present
     end
   end
 end

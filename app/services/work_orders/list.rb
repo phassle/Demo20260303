@@ -5,19 +5,21 @@ module WorkOrders
     end
 
     def call
-      work_orders = WorkOrder.where(property_id: @property_id)
+      WorkOrder.where(property_id: @property_id).map { |work_order| serialize(work_order) }
+    end
 
-      work_orders.map do |wo|
-        {
-          id: wo.id,
-          title: wo.title,
-          status: wo.status,
-          priority: wo.priority,
-          property: wo.property.name,
-          tenant: wo.tenant&.name,
-          assigned_to: wo.assigned_to&.name
-        }
-      end
+    private
+
+    def serialize(work_order)
+      {
+        id: work_order.id,
+        title: work_order.title,
+        status: work_order.status,
+        priority: work_order.priority,
+        property: work_order.property.name,
+        tenant: work_order.tenant&.name,
+        assigned_to: work_order.assigned_to&.name
+      }
     end
   end
 end
