@@ -2,28 +2,16 @@ module Api
   module V1
     class WorkOrdersController < ApplicationController
       def index
-        # NOTE: This has an N+1 query problem — no .includes()
-        work_orders = WorkOrder.where(property_id: params[:property_id])
-        render json: work_orders.map { |wo|
-          {
-            id: wo.id,
-            title: wo.title,
-            status: wo.status,
-            priority: wo.priority,
-            property: wo.property.name,
-            tenant: wo.tenant&.name,
-            assigned_to: wo.assigned_to&.name
-          }
-        }
+        render json: WorkOrders::List.new(property_id: params[:property_id]).call
       end
 
       def create
-        work_order = WorkOrder.new(work_order_params)
+        result = WorkOrders::Create.new(work_order_params).call
         # NOTE: No Pundit authorization!
-        if work_order.save
-          render json: work_order, status: :created
+        if result.success?
+          render json: result.work_order, status: :created
         else
-          render json: { errors: work_order.errors.full_messages }, status: :unprocessable_entity
+          render json: { errors: result.errors }, status: :unprocessable_entity
         end
       end
 
