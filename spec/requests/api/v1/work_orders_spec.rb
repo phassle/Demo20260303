@@ -21,6 +21,28 @@ RSpec.describe 'Api::V1::WorkOrders', type: :request do
       expect(response).to have_http_status(:ok)
       expect(response.parsed_body).to eq([])
     end
+
+    it 'returns property, tenant and assigned_to names for each work order' do
+      technician = create(:user, :technician)
+      create(:work_order, property: property, tenant: tenant, assigned_to: technician)
+
+      get api_v1_property_work_orders_path(property)
+
+      wo = response.parsed_body.first
+      expect(wo['property']).to eq(property.name)
+      expect(wo['tenant']).to eq(tenant.name)
+      expect(wo['assigned_to']).to eq(technician.name)
+    end
+
+    it 'returns nil for optional associations when absent' do
+      create(:work_order, property: property, tenant: nil, assigned_to: nil)
+
+      get api_v1_property_work_orders_path(property)
+
+      wo = response.parsed_body.first
+      expect(wo['tenant']).to be_nil
+      expect(wo['assigned_to']).to be_nil
+    end
   end
 
   describe 'POST /api/v1/properties/:property_id/work_orders' do
@@ -53,7 +75,7 @@ RSpec.describe 'Api::V1::WorkOrders', type: :request do
 
   describe 'error handling' do
     it 'returns 500 with generic message on unexpected error' do
-      allow(WorkOrder).to receive(:where).and_raise(RuntimeError, 'boom')
+      allow(WorkOrder).to receive(:includes).and_raise(RuntimeError, 'boom')
 
       get api_v1_property_work_orders_path(property)
 

@@ -2,8 +2,7 @@ module Api
   module V1
     class WorkOrdersController < ApplicationController
       def index
-        # NOTE: This has an N+1 query problem — no .includes()
-        work_orders = WorkOrder.where(property_id: params[:property_id])
+        work_orders = WorkOrder.includes(:property, :tenant, :assigned_to).where(property_id: params[:property_id])
         render json: work_orders.map { |wo|
           {
             id: wo.id,
