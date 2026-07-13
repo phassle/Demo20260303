@@ -5,7 +5,8 @@
         "matcher": "Write|Edit",
         "hooks": [
           {
-            "command": "bash -c 'FILE_PATH=$(jq -r .tool_input.file_path); REL_PATH=\"${FILE_PATH#$PWD/}\"; docker compose exec -T web bundle exec rubocop --autocorrect --fail-level=error \"$REL_PATH\"'",
+            "type": "command",
+            "command": ".claude/hooks/rubocop-post-edit.sh",
             "timeout": 30
           }
         ]
@@ -15,7 +16,8 @@
       {
         "hooks": [
           {
-            "command": "docker compose exec -T web bundle exec rspec && docker compose exec -T web bundle exec rubocop",
+            "type": "command",
+            "command": ".claude/hooks/verify-on-stop.sh",
             "timeout": 180
           }
         ]

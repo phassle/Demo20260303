@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Demo20260303 — Codebase Playground</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2333;
+    --border: #30363d;
+    --text: #e6edf3;
+    --text-muted: #8b949e;
+    --accent: #58a6ff;
+    --accent2: #3fb950;
+    --accent3: #d2a8ff;
+    --accent4: #f0883e;
+    --accent5: #f85149;
+    --red: #f85149;
+    --yellow: #d29922;
+    --green: #3fb950;
+    --blue: #58a6ff;
+    --purple: #d2a8ff;
+    --orange: #f0883e;
+    --ruby: #e0115f;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; overflow-x: hidden; }
+  code, pre, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia Code', Menlo, monospace; }
+
+  /* Header */
+  .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 16px 24px; display: flex; align-items: center; gap: 16px; position: sticky; top: 0; z-index: 100; }
+  .header h1 { font-size: 18px; font-weight: 600; }
+  .header h1 span { color: var(--ruby); }
+  .header .badge { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 2px 10px; font-size: 12px; color: var(--text-muted); }
+
+  /* Navigation */
+  .nav { display: flex; gap: 2px; background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 24px; overflow-x: auto; }
+  .nav button { background: none; border: none; color: var(--text-muted); padding: 10px 16px; cursor: pointer; font-size: 13px; font-weight: 500; border-bottom: 2px solid transparent; transition: all 0.15s; white-space: nowrap; }
+  .nav button:hover { color: var(--text); }
+  .nav button.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* Main Content */
+  .content { max-width: 1400px; margin: 0 auto; padding: 24px; }
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* Architecture Diagram */
+  .arch-container { display: flex; gap: 24px; flex-wrap: wrap; }
+  .arch-diagram { flex: 1; min-width: 600px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px; position: relative; }
+  .arch-detail { width: 340px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; max-height: 600px; overflow-y: auto; }
+  .arch-detail h3 { color: var(--accent); margin-bottom: 12px; font-size: 15px; }
+  .arch-detail .detail-section { margin-bottom: 16px; }
+  .arch-detail .detail-section h4 { color: var(--text-muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .arch-detail .detail-item { font-size: 13px; padding: 3px 0; display: flex; align-items: center; gap: 6px; }
+  .arch-detail .detail-item .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+  svg text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; }
+  .node-box { cursor: pointer; transition: filter 0.15s; }
+  .node-box:hover { filter: brightness(1.2); }
+  .node-box.selected rect { stroke-width: 2.5; }
+
+  /* API Explorer */
+  .api-grid { display: grid; grid-template-columns: 280px 1fr; gap: 20px; }
+  .api-list { display: flex; flex-direction: column; gap: 8px; }
+  .api-item { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; cursor: pointer; transition: all 0.15s; }
+  .api-item:hover { border-color: var(--accent); }
+  .api-item.active { border-color: var(--accent); background: var(--surface2); }
+  .api-item .method { font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-right: 8px; }
+  .api-item .method.get { background: rgba(59,185,80,0.15); color: var(--green); }
+  .api-item .method.post { background: rgba(88,166,255,0.15); color: var(--blue); }
+  .api-item .path { font-size: 13px; font-family: 'SF Mono', Menlo, monospace; }
+  .api-item .desc { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+  .api-detail { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .api-detail-header { padding: 16px 20px; border-bottom: 1px solid var(--border); }
+  .api-detail-header h3 { font-size: 14px; margin-bottom: 4px; }
+  .api-detail-tabs { display: flex; gap: 2px; padding: 0 20px; background: var(--surface2); }
+  .api-detail-tabs button { background: none; border: none; color: var(--text-muted); padding: 8px 12px; cursor: pointer; font-size: 12px; border-bottom: 2px solid transparent; }
+  .api-detail-tabs button.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .api-detail-body { padding: 16px 20px; }
+
+  /* Code Browser */
+  .code-tabs { display: flex; gap: 2px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px 8px 0 0; padding: 0 8px; overflow-x: auto; }
+  .code-tabs button { background: none; border: none; color: var(--text-muted); padding: 10px 14px; cursor: pointer; font-size: 12px; border-bottom: 2px solid transparent; white-space: nowrap; display: flex; align-items: center; gap: 6px; }
+  .code-tabs button:hover { color: var(--text); }
+  .code-tabs button.active { color: var(--accent); border-bottom-color: var(--accent); background: var(--surface); }
+  .code-tabs button .file-icon { font-size: 10px; }
+  .code-view { background: var(--surface); border: 1px solid var(--border); border-top: none; border-radius: 0 0 8px 8px; overflow: auto; max-height: 600px; }
+  .code-view pre { padding: 16px 20px; font-size: 13px; line-height: 1.6; tab-size: 2; }
+  .code-line { display: flex; }
+  .code-line .ln { color: var(--text-muted); opacity: 0.4; min-width: 36px; text-align: right; padding-right: 16px; user-select: none; }
+  .code-line.highlight { background: rgba(248,81,73,0.1); border-left: 3px solid var(--red); padding-left: 4px; }
+  .code-line.highlight .ln { opacity: 0.7; }
+  .code-path { padding: 8px 20px; font-size: 12px; color: var(--text-muted); border-bottom: 1px solid var(--border); background: var(--surface); }
+
+  /* Syntax Highlighting */
+  .kw { color: #ff7b72; }
+  .str { color: #a5d6ff; }
+  .sym { color: #79c0ff; }
+  .cls { color: #d2a8ff; }
+  .cmt { color: #8b949e; font-style: italic; }
+  .fn { color: #d2a8ff; }
+  .num { color: #79c0ff; }
+  .const { color: #79c0ff; }
+  .op { color: #ff7b72; }
+  .ivar { color: #ffa657; }
+
+  /* Known Issues */
+  .issues-grid { display: grid; gap: 12px; }
+  .issue-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .issue-header { padding: 14px 20px; display: flex; align-items: center; gap: 12px; cursor: pointer; }
+  .issue-header:hover { background: var(--surface2); }
+  .issue-num { background: rgba(248,81,73,0.15); color: var(--red); font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px; flex-shrink: 0; }
+  .issue-num.warn { background: rgba(210,169,34,0.15); color: var(--yellow); }
+  .issue-title { font-size: 14px; font-weight: 500; flex: 1; }
+  .issue-severity { font-size: 11px; padding: 2px 8px; border-radius: 4px; }
+  .issue-severity.high { background: rgba(248,81,73,0.15); color: var(--red); }
+  .issue-severity.medium { background: rgba(210,169,34,0.15); color: var(--yellow); }
+  .issue-hint { display: none; padding: 0 20px 16px 20px; }
+  .issue-hint.open { display: block; }
+  .issue-hint-content { background: var(--surface2); border-radius: 6px; padding: 12px 16px; font-size: 13px; border-left: 3px solid var(--accent); }
+  .issue-hint-content code { background: rgba(88,166,255,0.1); padding: 1px 5px; border-radius: 3px; color: var(--accent); font-size: 12px; }
+  .hint-toggle { background: none; border: 1px solid var(--border); color: var(--text-muted); padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; flex-shrink: 0; }
+  .hint-toggle:hover { border-color: var(--accent); color: var(--accent); }
+  .issue-file { font-size: 12px; color: var(--text-muted); font-family: 'SF Mono', Menlo, monospace; }
+
+  /* Tech Stack */
+  .stack-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+  .stack-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; display: flex; align-items: center; gap: 14px; transition: border-color 0.15s; }
+  .stack-card:hover { border-color: var(--accent); }
+  .stack-icon { width: 42px; height: 42px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; flex-shrink: 0; }
+  .stack-info h4 { font-size: 14px; font-weight: 600; }
+  .stack-info p { font-size: 12px; color: var(--text-muted); }
+  .stack-info .version { font-size: 11px; color: var(--accent); font-family: 'SF Mono', Menlo, monospace; }
+
+  /* Workshop Context */
+  .workshop-box { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px; max-width: 800px; }
+  .workshop-box h2 { font-size: 20px; margin-bottom: 12px; }
+  .workshop-box h2 span { color: var(--accent); }
+  .workshop-box p { color: var(--text-muted); font-size: 14px; margin-bottom: 12px; }
+  .workshop-box .workflow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 20px; }
+  .workflow-step { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 14px; text-align: center; }
+  .workflow-step .step-num { font-size: 20px; font-weight: 700; color: var(--accent); }
+  .workflow-step .step-label { font-size: 13px; font-weight: 600; margin-top: 4px; }
+  .workflow-step .step-desc { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+  /* Prompt Output */
+  .prompt-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 1px solid var(--border); padding: 12px 24px; display: flex; align-items: center; gap: 12px; z-index: 100; }
+  .prompt-bar .prompt-text { flex: 1; font-size: 13px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: 'SF Mono', Menlo, monospace; }
+  .prompt-bar .copy-btn { background: var(--accent); color: #0d1117; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; flex-shrink: 0; transition: opacity 0.15s; }
+  .prompt-bar .copy-btn:hover { opacity: 0.9; }
+  .prompt-bar .copy-btn.copied { background: var(--green); }
+
+  .content { padding-bottom: 80px; }
+
+  /* Section titles */
+  .section-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+  .section-title .count { background: var(--surface2); border: 1px solid var(--border); font-size: 12px; padding: 1px 8px; border-radius: 10px; color: var(--text-muted); }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .arch-container { flex-direction: column; }
+    .arch-detail { width: 100%; }
+    .api-grid { grid-template-columns: 1fr; }
+    .arch-diagram { min-width: auto; }
+    .workshop-box .workflow { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* Legend */
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); }
+  .legend-line { width: 24px; height: 2px; }
+  .legend-box { width: 12px; height: 12px; border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1><span>&#9670;</span> Demo20260303</h1>
+  <span class="badge">Rails 7.1 API</span>
+  <span class="badge">Property Management</span>
+  <span class="badge">Workshop Project</span>
+</div>
+
+<div class="nav" id="mainNav">
+  <button class="active" data-section="architecture">Architecture</button>
+  <button data-section="api">API Endpoints</button>
+  <button data-section="code">Code Browser</button>
+  <button data-section="issues">Known Issues</button>
+  <button data-section="stack">Tech Stack</button>
+  <button data-section="workshop">Workshop</button>
+</div>
+
+<div class="content">
+
+  <!-- ARCHITECTURE SECTION -->
+  <div class="section active" id="architecture">
+    <div class="section-title">Architecture Overview <span class="count">4 models</span></div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-line" style="background:#3fb950"></div> has_many</div>
+      <div class="legend-item"><div class="legend-line" style="background:#58a6ff;border-top:2px dashed #58a6ff;height:0"></div> belongs_to</div>
+      <div class="legend-item"><div class="legend-box" style="background:rgba(224,17,95,0.2);border:1px solid #e0115f"></div> Model</div>
+    </div>
+    <div class="arch-container">
+      <div class="arch-diagram">
+        <svg id="archSvg" viewBox="0 0 700 420" width="100%" height="420">
+          <defs>
+            <marker id="arrow-green" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#3fb950"/>
+            </marker>
+            <marker id="arrow-blue" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#58a6ff"/>
+            </marker>
+          </defs>
+
+          <!-- Connections -->
+          <!-- Property -> Tenants (has_many) -->
+          <path d="M 200 105 C 200 160, 130 160, 130 200" stroke="#3fb950" stroke-width="1.5" fill="none" marker-end="url(#arrow-green)"/>
+          <text x="140" y="155" fill="#3fb950" font-size="10" opacity="0.7">has_many</text>
+
+          <!-- Property -> WorkOrders (has_many) -->
+          <path d="M 250 105 C 270 160, 380 160, 400 200" stroke="#3fb950" stroke-width="1.5" fill="none" marker-end="url(#arrow-green)"/>
+          <text x="310" y="148" fill="#3fb950" font-size="10" opacity="0.7">has_many</text>
+
+          <!-- Tenant -> WorkOrders (has_many) -->
+          <path d="M 180 270 C 230 290, 330 290, 370 270" stroke="#3fb950" stroke-width="1.5" fill="none" marker-end="url(#arrow-green)"/>
+          <text x="260" y="298" fill="#3fb950" font-size="10" opacity="0.7">has_many</text>
+
+          <!-- WorkOrder -> Property (belongs_to) -->
+          <path d="M 430 200 C 390 150, 300 120, 270 105" stroke="#58a6ff" stroke-width="1.5" stroke-dasharray="6,3" fill="none" marker-end="url(#arrow-blue)"/>
+
+          <!-- WorkOrder -> Tenant (belongs_to, optional) -->
+          <path d="M 390 260 C 340 280, 220 280, 180 270" stroke="#58a6ff" stroke-width="1.5" stroke-dasharray="6,3" fill="none" marker-end="url(#arrow-blue)"/>
+          <text x="270" y="276" fill="#58a6ff" font-size="9" opacity="0.6">optional</text>
+
+          <!-- WorkOrder -> User (belongs_to, optional) -->
+          <path d="M 500 270 C 530 310, 560 340, 560 360" stroke="#58a6ff" stroke-width="1.5" stroke-dasharray="6,3" fill="none" marker-end="url(#arrow-blue)"/>
+          <text x="545" y="325" fill="#58a6ff" font-size="9" opacity="0.6">optional</text>
+
+          <!-- User -> WorkOrders (has_many) -->
+          <path d="M 530 360 C 510 320, 490 290, 480 270" stroke="#3fb950" stroke-width="1.5" fill="none" marker-end="url(#arrow-green)"/>
+          <text x="485" y="330" fill="#3fb950" font-size="10" opacity="0.7">assigned</text>
+
+          <!-- Tenant -> Property (belongs_to) -->
+          <path d="M 130 200 C 140 160, 180 130, 200 105" stroke="#58a6ff" stroke-width="1.5" stroke-dasharray="6,3" fill="none" marker-end="url(#arrow-blue)"/>
+
+          <!-- PROPERTY NODE -->
+          <g class="node-box" data-model="property" onclick="selectModel('property')">
+            <rect x="140" y="50" width="180" height="55" rx="8" fill="rgba(224,17,95,0.12)" stroke="#e0115f" stroke-width="1.5"/>
+            <text x="230" y="73" text-anchor="middle" fill="#e0115f" font-size="14" font-weight="600">Property</text>
+            <text x="230" y="92" text-anchor="middle" fill="#8b949e" font-size="11">app/models/property.rb</text>
+          </g>
+
+          <!-- TENANT NODE -->
+          <g class="node-box" data-model="tenant" onclick="selectModel('tenant')">
+            <rect x="50" y="210" width="170" height="55" rx="8" fill="rgba(224,17,95,0.12)" stroke="#e0115f" stroke-width="1.5"/>
+            <text x="135" y="233" text-anchor="middle" fill="#e0115f" font-size="14" font-weight="600">Tenant</text>
+            <text x="135" y="252" text-anchor="middle" fill="#8b949e" font-size="11">app/models/tenant.rb</text>
+          </g>
+
+          <!-- WORK ORDER NODE -->
+          <g class="node-box" data-model="work_order" onclick="selectModel('work_order')">
+            <rect x="330" y="210" width="200" height="55" rx="8" fill="rgba(224,17,95,0.12)" stroke="#e0115f" stroke-width="1.5"/>
+            <text x="430" y="233" text-anchor="middle" fill="#e0115f" font-size="14" font-weight="600">WorkOrder</text>
+            <text x="430" y="252" text-anchor="middle" fill="#8b949e" font-size="11">app/models/work_order.rb</text>
+          </g>
+
+          <!-- USER NODE -->
+          <g class="node-box" data-model="user" onclick="selectModel('user')">
+            <rect x="460" y="360" width="170" height="55" rx="8" fill="rgba(224,17,95,0.12)" stroke="#e0115f" stroke-width="1.5"/>
+            <text x="545" y="383" text-anchor="middle" fill="#e0115f" font-size="14" font-weight="600">User</text>
+            <text x="545" y="402" text-anchor="middle" fill="#8b949e" font-size="11">app/models/user.rb</text>
+          </g>
+        </svg>
+      </div>
+      <div class="arch-detail" id="archDetail">
+        <h3 id="detailTitle">Click a model to inspect</h3>
+        <div id="detailContent">
+          <p style="color:var(--text-muted);font-size:13px">Select a model node in the diagram to see its validations, associations, scopes, and database columns.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- API ENDPOINTS SECTION -->
+  <div class="section" id="api">
+    <div class="section-title">API Endpoints <span class="count">3 endpoints</span></div>
+    <div class="api-grid">
+      <div class="api-list" id="apiList"></div>
+      <div class="api-detail" id="apiDetail"></div>
+    </div>
+  </div>
+
+  <!-- CODE BROWSER SECTION -->
+  <div class="section" id="code">
+    <div class="section-title">Code Browser</div>
+    <div class="code-tabs" id="codeTabs"></div>
+    <div id="codePath" class="code-path"></div>
+    <div class="code-view"><pre id="codeContent"></pre></div>
+  </div>
+
+  <!-- KNOWN ISSUES SECTION -->
+  <div class="section" id="issues">
+    <div class="section-title">Known Issues <span class="count">5 intentional bugs</span></div>
+    <div class="issues-grid" id="issuesGrid"></div>
+  </div>
+
+  <!-- TECH STACK SECTION -->
+  <div class="section" id="stack">
+    <div class="section-title">Tech Stack</div>
+    <div class="stack-grid" id="stackGrid"></div>
+  </div>
+
+  <!-- WORKSHOP SECTION -->
+  <div class="section" id="workshop">
+    <div class="workshop-box">
+      <h2>Agentic Development <span>Workshop</span></h2>
+      <p>This project is a teaching codebase for the <strong>Agentic Development Workshop</strong> (March 3-4, 2026). Developers learn to work with AI coding agents &mdash; primarily <strong>Claude Code</strong> &mdash; to identify bugs, improve code quality, and follow Rails best practices.</p>
+      <p>The Rails API contains <strong>5 intentional issues</strong> that serve as exercises. Participants use AI agents to diagnose and fix each issue, following a structured workflow:</p>
+      <div class="workflow">
+        <div class="workflow-step">
+          <div class="step-num">1</div>
+          <div class="step-label">Plan</div>
+          <div class="step-desc">Understand the issue and design a fix</div>
+        </div>
+        <div class="workflow-step">
+          <div class="step-num">2</div>
+          <div class="step-label">Build</div>
+          <div class="step-desc">Implement the solution with TDD</div>
+        </div>
+        <div class="workflow-step">
+          <div class="step-num">3</div>
+          <div class="step-label">Simplify</div>
+          <div class="step-desc">Refactor for clarity and convention</div>
+        </div>
+        <div class="workflow-step">
+          <div class="step-num">4</div>
+          <div class="step-label">Verify</div>
+          <div class="step-desc">Run tests and review edge cases</div>
+        </div>
+      </div>
+      <div style="margin-top:20px">
+        <div class="section-title" style="font-size:14px">Key Workshop Tools</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div style="background:var(--surface2);padding:10px 14px;border-radius:6px;font-size:13px"><strong style="color:var(--accent)">Claude Code</strong> &mdash; AI agent for coding, testing, reviewing</div>
+          <div style="background:var(--surface2);padding:10px 14px;border-radius:6px;font-size:13px"><strong style="color:var(--accent)">Docker Compose</strong> &mdash; Containerized dev environment</div>
+          <div style="background:var(--surface2);padding:10px 14px;border-radius:6px;font-size:13px"><strong style="color:var(--accent)">RSpec</strong> &mdash; BDD/TDD testing framework</div>
+          <div style="background:var(--surface2);padding:10px 14px;border-radius:6px;font-size:13px"><strong style="color:var(--accent)">AGENTS.md</strong> &mdash; AI onboarding document</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Prompt Bar -->
+<div class="prompt-bar">
+  <div class="prompt-text" id="promptText">Explore the codebase by navigating the sections above. Your selections will generate a context prompt.</div>
+  <button class="copy-btn" id="copyBtn" onclick="copyPrompt()">Copy Prompt</button>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════
+const state = {
+  section: 'architecture',
+  selectedModel: null,
+  selectedEndpoint: 0,
+  selectedCodeFile: 0,
+  openIssues: new Set(),
+  comments: []
+};
+
+// ═══════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════
+const models = {
+  property: {
+    name: 'Property',
+    file: 'app/models/property.rb',
+    table: 'properties',
+    associations: [
+      { type: 'has_many', target: 'tenants', color: '#3fb950', extra: 'dependent: :destroy' },
+      { type: 'has_many', target: 'work_orders', color: '#3fb950', extra: 'dependent: :destroy' }
+    ],
+    validations: [
+      'name — presence: true',
+      'address — presence: true',
+      'city — presence: true',
+      'units_count — numericality: { greater_than: 0 }'
+    ],
+    scopes: ['in_city(city)', 'residential', 'commercial'],
+    columns: ['name (string, NOT NULL)', 'address (string, NOT NULL)', 'city (string, NOT NULL)', 'property_type (string, default: "residential")', 'units_count (integer, default: 1)'],
+    indexes: ['city']
+  },
+  tenant: {
+    name: 'Tenant',
+    file: 'app/models/tenant.rb',
+    table: 'tenants',
+    associations: [
+      { type: 'belongs_to', target: 'property', color: '#58a6ff' },
+      { type: 'has_many', target: 'work_orders', color: '#3fb950', extra: 'dependent: :nullify' }
+    ],
+    validations: [
+      'name — presence: true',
+      'email — presence: true',
+      'email — uniqueness: true'
+    ],
+    scopes: ['active (lease_end IS NULL OR >= today)'],
+    columns: ['name (string, NOT NULL)', 'email (string, NOT NULL, unique)', 'phone (string)', 'property_id (bigint, NOT NULL, FK)', 'unit_number (string)', 'lease_start (date)', 'lease_end (date)'],
+    indexes: ['property_id', 'email (unique)']
+  },
+  work_order: {
+    name: 'WorkOrder',
+    file: 'app/models/work_order.rb',
+    table: 'work_orders',
+    associations: [
+      { type: 'belongs_to', target: 'property', color: '#58a6ff' },
+      { type: 'belongs_to', target: 'tenant', color: '#58a6ff', extra: 'optional: true' },
+      { type: 'belongs_to', target: 'assigned_to (User)', color: '#58a6ff', extra: 'optional: true' }
+    ],
+    validations: [
+      'title — presence: true',
+      'description — presence: true',
+      'status — inclusion: [open, in_progress, completed, cancelled]',
+      'priority — inclusion: [low, normal, high, urgent]'
+    ],
+    scopes: ['open_orders (status: open)', 'unassigned (assigned_to_id: nil)', 'by_priority (urgent > high > normal > low)'],
+    columns: ['title (string, NOT NULL)', 'description (text)', 'status (string, default: "open")', 'priority (string, default: "normal")', 'property_id (bigint, NOT NULL, FK)', 'tenant_id (bigint, FK)', 'assigned_to_id (bigint, FK)', 'completed_at (datetime)'],
+    indexes: ['property_id', 'status', 'priority']
+  },
+  user: {
+    name: 'User',
+    file: 'app/models/user.rb',
+    table: 'users',
+    associations: [
+      { type: 'has_many', target: 'assigned_work_orders (WorkOrder)', color: '#3fb950', extra: 'FK: assigned_to_id' }
+    ],
+    validations: [
+      'name — presence: true',
+      'email — presence: true',
+      'email — uniqueness: true',
+      'role — inclusion: [admin, manager, technician]'
+    ],
+    scopes: [],
+    columns: ['name (string, NOT NULL)', 'email (string, NOT NULL, unique)', 'role (string, default: "manager")'],
+    indexes: ['email (unique)']
+  }
+};
+
+const endpoints = [
+  {
+    method: 'GET',
+    path: '/api/v1/properties/:property_id/work_orders',
+    desc: 'List work orders for a property',
+    request: `GET /api/v1/properties/1/work_orders HTTP/1.1
+Host: localhost:3000
+Accept: application/json`,
+    response: `[
+  {
+    "id": 1,
+    "title": "Fix leaking faucet",
+    "status": "open",
+    "priority": "high",
+    "property": "Sunset Apartments",
+    "tenant": "Jane Doe",
+    "assigned_to": null
+  },
+  {
+    "id": 2,
+    "title": "Replace AC unit",
+    "status": "in_progress",
+    "priority": "urgent",
+    "property": "Sunset Apartments",
+    "tenant": "John Smith",
+    "assigned_to": "Mike Tech"
+  }
+]`,
+    notes: '⚠️ Has N+1 query issue — each work order triggers separate queries for property, tenant, and assigned_to.'
+  },
+  {
+    method: 'POST',
+    path: '/api/v1/properties/:property_id/work_orders',
+    desc: 'Create a new work order',
+    request: `POST /api/v1/properties/1/work_orders HTTP/1.1
+Host: localhost:3000
+Content-Type: application/json
+
+{
+  "work_order": {
+    "title": "Broken window in unit 4B",
+    "description": "Window cracked during storm",
+    "priority": "high",
+    "tenant_id": 3
+  }
+}`,
+    response: `{
+  "id": 5,
+  "title": "Broken window in unit 4B",
+  "description": "Window cracked during storm",
+  "status": "open",
+  "priority": "high",
+  "property_id": 1,
+  "tenant_id": 3,
+  "assigned_to_id": null,
+  "completed_at": null,
+  "created_at": "2026-03-03T10:00:00.000Z",
+  "updated_at": "2026-03-03T10:00:00.000Z"
+}`,
+    notes: '⚠️ No Pundit authorization — any user can create work orders. Business logic lives in controller instead of a service object.'
+  },
+  {
+    method: 'GET',
+    path: '/api/v1/work_orders',
+    desc: 'List all work orders (global)',
+    request: `GET /api/v1/work_orders HTTP/1.1
+Host: localhost:3000
+Accept: application/json`,
+    response: `[
+  {
+    "id": 1,
+    "title": "Fix leaking faucet",
+    "status": "open",
+    "priority": "high",
+    ...
+  },
+  ...
+]`,
+    notes: 'Returns all work orders across all properties. Same serialization as the nested endpoint.'
+  }
+];
+
+const codeFiles = [
+  {
+    name: 'WorkOrder',
+    icon: '&#9670;',
+    path: 'app/models/work_order.rb',
+    highlights: [],
+    code: `<span class="kw">class</span> <span class="cls">WorkOrder</span> &lt; <span class="cls">ApplicationRecord</span>
+  <span class="kw">belongs_to</span> <span class="sym">:property</span>
+  <span class="kw">belongs_to</span> <span class="sym">:tenant</span>, <span class="sym">optional:</span> <span class="const">true</span>
+  <span class="kw">belongs_to</span> <span class="sym">:assigned_to</span>, <span class="sym">class_name:</span> <span class="str">"User"</span>, <span class="sym">optional:</span> <span class="const">true</span>
+
+  <span class="kw">validates</span> <span class="sym">:title</span>, <span class="sym">presence:</span> <span class="const">true</span>
+  <span class="kw">validates</span> <span class="sym">:status</span>, <span class="sym">inclusion:</span> { <span class="sym">in:</span> <span class="str">%w[open in_progress completed cancelled]</span> }
+  <span class="kw">validates</span> <span class="sym">:priority</span>, <span class="sym">inclusion:</span> { <span class="sym">in:</span> <span class="str">%w[low normal high urgent]</span> }
+
+  <span class="kw">scope</span> <span class="sym">:open_orders</span>, -&gt; { <span class="fn">where</span>(<span class="sym">status:</span> <span class="str">"open"</span>) }
+  <span class="kw">scope</span> <span class="sym">:unassigned</span>, -&gt; { <span class="fn">where</span>(<span class="sym">assigned_to_id:</span> <span class="const">nil</span>) }
+  <span class="kw">scope</span> <span class="sym">:by_priority</span>, -&gt; { <span class="fn">order</span>(<span class="cls">Arel</span>.sql(<span class="str">"CASE priority WHEN 'urgent' THEN 0 ..."</span>)) }
+
+  <span class="kw">validates</span> <span class="sym">:description</span>, <span class="sym">presence:</span> <span class="const">true</span>
+<span class="kw">end</span>`
+  },
+  {
+    name: 'WorkOrdersController',
+    icon: 'C',
+    path: 'app/controllers/api/v1/work_orders_controller.rb',
+    highlights: [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 21],
+    code: `<span class="kw">module</span> <span class="cls">Api</span>
+  <span class="kw">module</span> <span class="cls">V1</span>
+    <span class="kw">class</span> <span class="cls">WorkOrdersController</span> &lt; <span class="cls">ApplicationController</span>
+      <span class="kw">def</span> <span class="fn">index</span>
+        <span class="cmt"># NOTE: This has an N+1 query problem — no .includes()</span>
+        work_orders = <span class="cls">WorkOrder</span>.<span class="fn">where</span>(<span class="sym">property_id:</span> params[<span class="sym">:property_id</span>])
+        <span class="kw">render</span> <span class="sym">json:</span> work_orders.<span class="fn">map</span> { |wo|
+          {
+            <span class="sym">id:</span> wo.id,
+            <span class="sym">title:</span> wo.title,
+            <span class="sym">status:</span> wo.status,
+            <span class="sym">priority:</span> wo.priority,
+            <span class="sym">property:</span> wo.property.name,       <span class="cmt"># N+1!</span>
+            <span class="sym">tenant:</span> wo.tenant&amp;.name,        <span class="cmt"># N+1!</span>
+            <span class="sym">assigned_to:</span> wo.assigned_to&amp;.name <span class="cmt"># N+1!</span>
+          }
+        }
+      <span class="kw">end</span>
+
+      <span class="kw">def</span> <span class="fn">create</span>
+        work_order = <span class="cls">WorkOrder</span>.<span class="fn">new</span>(work_order_params)
+        <span class="cmt"># NOTE: No Pundit authorization!</span>
+        <span class="kw">if</span> work_order.<span class="fn">save</span>
+          <span class="kw">render</span> <span class="sym">json:</span> work_order, <span class="sym">status:</span> <span class="sym">:created</span>
+        <span class="kw">else</span>
+          <span class="kw">render</span> <span class="sym">json:</span> { <span class="sym">errors:</span> work_order.errors.full_messages }, <span class="sym">status:</span> <span class="sym">:unprocessable_entity</span>
+        <span class="kw">end</span>
+      <span class="kw">end</span>
+
+      <span class="kw">private</span>
+
+      <span class="kw">def</span> <span class="fn">work_order_params</span>
+        params.<span class="fn">require</span>(<span class="sym">:work_order</span>).<span class="fn">permit</span>(<span class="sym">:title</span>, <span class="sym">:description</span>, <span class="sym">:property_id</span>, <span class="sym">:tenant_id</span>, <span class="sym">:priority</span>)
+      <span class="kw">end</span>
+    <span class="kw">end</span>
+  <span class="kw">end</span>
+<span class="kw">end</span>`
+  },
+  {
+    name: 'ApplicationController',
+    icon: 'C',
+    path: 'app/controllers/application_controller.rb',
+    highlights: [2],
+    code: `<span class="kw">class</span> <span class="cls">ApplicationController</span> &lt; <span class="cls">ActionController::API</span>
+  <span class="cmt"># include Pundit::Authorization  # TODO: not yet enabled</span>
+
+  <span class="kw">rescue_from</span> <span class="cls">StandardError</span>, <span class="sym">with:</span> <span class="sym">:handle_internal_error</span>
+  <span class="kw">rescue_from</span> <span class="cls">ActiveRecord::RecordNotFound</span>, <span class="sym">with:</span> <span class="sym">:handle_not_found</span>
+  <span class="kw">rescue_from</span> <span class="cls">ActiveRecord::RecordInvalid</span>, <span class="sym">with:</span> <span class="sym">:handle_record_invalid</span>
+  <span class="kw">rescue_from</span> <span class="cls">ActionController::ParameterMissing</span>, <span class="sym">with:</span> <span class="sym">:handle_parameter_missing</span>
+
+  <span class="kw">private</span>
+
+  <span class="kw">def</span> <span class="fn">handle_not_found</span>(exception)
+    <span class="cls">Rails</span>.logger.<span class="fn">warn</span>(<span class="str">"[NotFound] #{exception.message}"</span>)
+    <span class="kw">render</span> <span class="sym">json:</span> { <span class="sym">error:</span> <span class="str">'Resource not found'</span> }, <span class="sym">status:</span> <span class="sym">:not_found</span>
+  <span class="kw">end</span>
+
+  <span class="kw">def</span> <span class="fn">handle_record_invalid</span>(exception)
+    <span class="cls">Rails</span>.logger.<span class="fn">warn</span>(<span class="str">"[RecordInvalid] #{exception.message}"</span>)
+    <span class="kw">render</span> <span class="sym">json:</span> { <span class="sym">errors:</span> exception.record.errors.full_messages }, <span class="sym">status:</span> <span class="sym">:unprocessable_entity</span>
+  <span class="kw">end</span>
+
+  <span class="kw">def</span> <span class="fn">handle_parameter_missing</span>(exception)
+    <span class="cls">Rails</span>.logger.<span class="fn">warn</span>(<span class="str">"[ParameterMissing] #{exception.message}"</span>)
+    <span class="kw">render</span> <span class="sym">json:</span> { <span class="sym">error:</span> exception.message }, <span class="sym">status:</span> <span class="sym">:bad_request</span>
+  <span class="kw">end</span>
+
+  <span class="kw">def</span> <span class="fn">handle_internal_error</span>(exception)
+    <span class="cls">Rails</span>.logger.<span class="fn">error</span>(<span class="str">"[InternalError] #{exception.class}: #{exception.message}"</span>)
+    <span class="cls">Rails</span>.logger.<span class="fn">error</span>(exception.backtrace&amp;.first(<span class="num">10</span>)&amp;.join(<span class="str">"\\n"</span>))
+    <span class="kw">render</span> <span class="sym">json:</span> { <span class="sym">error:</span> <span class="str">'Internal server error'</span> }, <span class="sym">status:</span> <span class="sym">:internal_server_error</span>
+  <span class="kw">end</span>
+<span class="kw">end</span>`
+  },
+  {
+    name: 'Property',
+    icon: '&#9670;',
+    path: 'app/models/property.rb',
+    highlights: [],
+    code: `<span class="kw">class</span> <span class="cls">Property</span> &lt; <span class="cls">ApplicationRecord</span>
+  <span class="kw">has_many</span> <span class="sym">:tenants</span>, <span class="sym">dependent:</span> <span class="sym">:destroy</span>
+  <span class="kw">has_many</span> <span class="sym">:work_orders</span>, <span class="sym">dependent:</span> <span class="sym">:destroy</span>
+
+  <span class="kw">validates</span> <span class="sym">:name</span>, <span class="sym">:address</span>, <span class="sym">:city</span>, <span class="sym">presence:</span> <span class="const">true</span>
+  <span class="kw">validates</span> <span class="sym">:units_count</span>, <span class="sym">numericality:</span> { <span class="sym">greater_than:</span> <span class="num">0</span> }
+
+  <span class="kw">scope</span> <span class="sym">:in_city</span>, -&gt;(city) { <span class="fn">where</span>(<span class="sym">city:</span> city) }
+  <span class="kw">scope</span> <span class="sym">:residential</span>, -&gt; { <span class="fn">where</span>(<span class="sym">property_type:</span> <span class="str">"residential"</span>) }
+  <span class="kw">scope</span> <span class="sym">:commercial</span>, -&gt; { <span class="fn">where</span>(<span class="sym">property_type:</span> <span class="str">"commercial"</span>) }
+<span class="kw">end</span>`
+  },
+  {
+    name: 'Tenant',
+    icon: '&#9670;',
+    path: 'app/models/tenant.rb',
+    highlights: [],
+    code: `<span class="kw">class</span> <span class="cls">Tenant</span> &lt; <span class="cls">ApplicationRecord</span>
+  <span class="kw">belongs_to</span> <span class="sym">:property</span>
+  <span class="kw">has_many</span> <span class="sym">:work_orders</span>, <span class="sym">dependent:</span> <span class="sym">:nullify</span>
+
+  <span class="kw">validates</span> <span class="sym">:name</span>, <span class="sym">:email</span>, <span class="sym">presence:</span> <span class="const">true</span>
+  <span class="kw">validates</span> <span class="sym">:email</span>, <span class="sym">uniqueness:</span> <span class="const">true</span>
+
+  <span class="kw">scope</span> <span class="sym">:active</span>, -&gt; { <span class="fn">where</span>(<span class="str">"lease_end IS NULL OR lease_end >= ?"</span>, <span class="cls">Date</span>.current) }
+<span class="kw">end</span>`
+  },
+  {
+    name: 'User',
+    icon: '&#9670;',
+    path: 'app/models/user.rb',
+    highlights: [],
+    code: `<span class="kw">class</span> <span class="cls">User</span> &lt; <span class="cls">ApplicationRecord</span>
+  <span class="kw">has_many</span> <span class="sym">:assigned_work_orders</span>, <span class="sym">class_name:</span> <span class="str">"WorkOrder"</span>, <span class="sym">foreign_key:</span> <span class="sym">:assigned_to_id</span>
+
+  <span class="kw">validates</span> <span class="sym">:name</span>, <span class="sym">:email</span>, <span class="sym">presence:</span> <span class="const">true</span>
+  <span class="kw">validates</span> <span class="sym">:email</span>, <span class="sym">uniqueness:</span> <span class="const">true</span>
+  <span class="kw">validates</span> <span class="sym">:role</span>, <span class="sym">inclusion:</span> { <span class="sym">in:</span> <span class="str">%w[admin manager technician]</span> }
+<span class="kw">end</span>`
+  },
+  {
+    name: 'Schema',
+    icon: 'DB',
+    path: 'db/schema.rb',
+    highlights: [],
+    code: `<span class="cls">ActiveRecord::Schema</span>[<span class="num">7.1</span>].<span class="fn">define</span>(<span class="sym">version:</span> <span class="num">2026_02_01_000001</span>) <span class="kw">do</span>
+  <span class="fn">enable_extension</span> <span class="str">"plpgsql"</span>
+
+  <span class="fn">create_table</span> <span class="str">"properties"</span>, <span class="sym">force:</span> <span class="sym">:cascade</span> <span class="kw">do</span> |t|
+    t.string  <span class="str">"name"</span>,          <span class="sym">null:</span> <span class="const">false</span>
+    t.string  <span class="str">"address"</span>,       <span class="sym">null:</span> <span class="const">false</span>
+    t.string  <span class="str">"city"</span>,          <span class="sym">null:</span> <span class="const">false</span>
+    t.string  <span class="str">"property_type"</span>, <span class="sym">default:</span> <span class="str">"residential"</span>
+    t.integer <span class="str">"units_count"</span>,   <span class="sym">default:</span> <span class="num">1</span>
+    t.datetime <span class="str">"created_at"</span>,   <span class="sym">null:</span> <span class="const">false</span>
+    t.datetime <span class="str">"updated_at"</span>,   <span class="sym">null:</span> <span class="const">false</span>
+    t.index [<span class="str">"city"</span>]
+  <span class="kw">end</span>
+
+  <span class="fn">create_table</span> <span class="str">"tenants"</span>, <span class="sym">force:</span> <span class="sym">:cascade</span> <span class="kw">do</span> |t|
+    t.string <span class="str">"name"</span>,        <span class="sym">null:</span> <span class="const">false</span>
+    t.string <span class="str">"email"</span>,       <span class="sym">null:</span> <span class="const">false</span>
+    t.string <span class="str">"phone"</span>
+    t.bigint <span class="str">"property_id"</span>, <span class="sym">null:</span> <span class="const">false</span>
+    t.string <span class="str">"unit_number"</span>
+    t.date   <span class="str">"lease_start"</span>
+    t.date   <span class="str">"lease_end"</span>
+    t.index [<span class="str">"property_id"</span>]
+    t.index [<span class="str">"email"</span>], <span class="sym">unique:</span> <span class="const">true</span>
+  <span class="kw">end</span>
+
+  <span class="fn">create_table</span> <span class="str">"work_orders"</span>, <span class="sym">force:</span> <span class="sym">:cascade</span> <span class="kw">do</span> |t|
+    t.string   <span class="str">"title"</span>,          <span class="sym">null:</span> <span class="const">false</span>
+    t.text     <span class="str">"description"</span>
+    t.string   <span class="str">"status"</span>,         <span class="sym">default:</span> <span class="str">"open"</span>
+    t.string   <span class="str">"priority"</span>,       <span class="sym">default:</span> <span class="str">"normal"</span>
+    t.bigint   <span class="str">"property_id"</span>,    <span class="sym">null:</span> <span class="const">false</span>
+    t.bigint   <span class="str">"tenant_id"</span>
+    t.bigint   <span class="str">"assigned_to_id"</span>
+    t.datetime <span class="str">"completed_at"</span>
+    t.index [<span class="str">"property_id"</span>]
+    t.index [<span class="str">"status"</span>]
+    t.index [<span class="str">"priority"</span>]
+  <span class="kw">end</span>
+
+  <span class="fn">create_table</span> <span class="str">"users"</span>, <span class="sym">force:</span> <span class="sym">:cascade</span> <span class="kw">do</span> |t|
+    t.string <span class="str">"name"</span>,  <span class="sym">null:</span> <span class="const">false</span>
+    t.string <span class="str">"email"</span>, <span class="sym">null:</span> <span class="const">false</span>
+    t.string <span class="str">"role"</span>,  <span class="sym">default:</span> <span class="str">"manager"</span>
+    t.index [<span class="str">"email"</span>], <span class="sym">unique:</span> <span class="const">true</span>
+  <span class="kw">end</span>
+
+  <span class="fn">add_foreign_key</span> <span class="str">"tenants"</span>, <span class="str">"properties"</span>
+  <span class="fn">add_foreign_key</span> <span class="str">"work_orders"</span>, <span class="str">"properties"</span>
+  <span class="fn">add_foreign_key</span> <span class="str">"work_orders"</span>, <span class="str">"tenants"</span>
+  <span class="fn">add_foreign_key</span> <span class="str">"work_orders"</span>, <span class="str">"users"</span>, <span class="sym">column:</span> <span class="str">"assigned_to_id"</span>
+<span class="kw">end</span>`
+  },
+  {
+    name: 'Routes',
+    icon: 'R',
+    path: 'config/routes.rb',
+    highlights: [],
+    code: `<span class="cls">Rails</span>.application.routes.<span class="fn">draw</span> <span class="kw">do</span>
+  <span class="kw">namespace</span> <span class="sym">:api</span> <span class="kw">do</span>
+    <span class="kw">namespace</span> <span class="sym">:v1</span> <span class="kw">do</span>
+      <span class="kw">resources</span> <span class="sym">:properties</span>, <span class="sym">only:</span> [<span class="sym">:index</span>, <span class="sym">:show</span>] <span class="kw">do</span>
+        <span class="kw">resources</span> <span class="sym">:work_orders</span>, <span class="sym">only:</span> [<span class="sym">:index</span>, <span class="sym">:create</span>, <span class="sym">:update</span>]
+      <span class="kw">end</span>
+      <span class="kw">resources</span> <span class="sym">:work_orders</span>, <span class="sym">only:</span> [<span class="sym">:index</span>]
+    <span class="kw">end</span>
+  <span class="kw">end</span>
+<span class="kw">end</span>`
+  },
+  {
+    name: 'Docker',
+    icon: 'D',
+    path: 'docker-compose.yml + Dockerfile',
+    highlights: [],
+    code: `<span class="cmt"># docker-compose.yml</span>
+<span class="sym">services:</span>
+  <span class="sym">db:</span>
+    <span class="sym">image:</span> <span class="str">postgres:16-alpine</span>
+    <span class="sym">environment:</span>
+      <span class="sym">POSTGRES_USER:</span> workshop
+      <span class="sym">POSTGRES_PASSWORD:</span> workshop
+      <span class="sym">POSTGRES_DB:</span> workshop_development
+    <span class="sym">ports:</span> [<span class="str">"5433:5432"</span>]
+    <span class="sym">healthcheck:</span>
+      <span class="sym">test:</span> [<span class="str">"CMD-SHELL"</span>, <span class="str">"pg_isready -U workshop"</span>]
+
+  <span class="sym">web:</span>
+    <span class="sym">build:</span> .
+    <span class="sym">command:</span> <span class="str">bash -c "bundle install && rake db:prepare && puma"</span>
+    <span class="sym">ports:</span> [<span class="str">"3000:3000"</span>]
+    <span class="sym">volumes:</span> [<span class="str">".:/app"</span>]
+    <span class="sym">depends_on:</span>
+      <span class="sym">db:</span> { <span class="sym">condition:</span> service_healthy }
+    <span class="sym">environment:</span>
+      <span class="sym">DATABASE_URL:</span> <span class="str">postgres://workshop:workshop@db:5432/workshop_development</span>
+
+<span class="cmt"># Dockerfile</span>
+<span class="kw">FROM</span> <span class="str">ruby:3.2.2-slim</span>
+<span class="kw">RUN</span> apt-get update -qq && \\
+    apt-get install -y build-essential libpq-dev
+<span class="kw">WORKDIR</span> /app
+<span class="kw">COPY</span> Gemfile Gemfile.lock ./
+<span class="kw">RUN</span> bundle install
+<span class="kw">COPY</span> . .
+<span class="kw">EXPOSE</span> <span class="num">3000</span>
+<span class="kw">CMD</span> [<span class="str">"bin/rails"</span>, <span class="str">"server"</span>, <span class="str">"-b"</span>, <span class="str">"0.0.0.0"</span>]`
+  }
+];
+
+const issues = [
+  {
+    num: 1,
+    title: 'Missing validation on WorkOrder descriptions',
+    severity: 'medium',
+    file: 'app/models/work_order.rb',
+    hint: 'The description validation was added at line 14, but the README originally listed it as missing. Check if the DB column allows NULL (<code>t.text "description"</code> has no <code>null: false</code> constraint). The model validates presence, but the database schema doesn\'t enforce it — add a migration with <code>change_column_null :work_orders, :description, false</code>.'
+  },
+  {
+    num: 2,
+    title: 'N+1 query problem in WorkOrdersController#index',
+    severity: 'high',
+    file: 'app/controllers/api/v1/work_orders_controller.rb:6',
+    hint: 'The index action calls <code>wo.property.name</code>, <code>wo.tenant&.name</code>, and <code>wo.assigned_to&.name</code> inside a <code>.map</code> block without eager loading. Fix with:<br><code>WorkOrder.where(...).includes(:property, :tenant, :assigned_to)</code>'
+  },
+  {
+    num: 3,
+    title: 'No Pundit authorization on create endpoint',
+    severity: 'high',
+    file: 'app/controllers/api/v1/work_orders_controller.rb:20',
+    hint: 'Pundit is in the Gemfile but commented out in ApplicationController. Enable it with <code>include Pundit::Authorization</code>, create a <code>WorkOrderPolicy</code> in <code>app/policies/</code>, and add <code>authorize work_order</code> before save in the create action.'
+  },
+  {
+    num: 4,
+    title: 'Business logic in controller (should be in services)',
+    severity: 'medium',
+    file: 'app/controllers/api/v1/work_orders_controller.rb',
+    hint: 'The create action has business logic directly in the controller. Extract it into a service object at <code>app/services/work_orders/create_service.rb</code> following the thin-controller pattern. The service should handle creation, validation, and any side effects.'
+  },
+  {
+    num: 5,
+    title: 'No escalation logic for old unassigned work orders',
+    severity: 'medium',
+    file: 'app/services/ (missing)',
+    hint: 'There\'s no mechanism to escalate work orders that remain unassigned for too long. Implement an escalation service or scheduled job that finds work orders older than N days with <code>assigned_to_id: nil</code> and either auto-assigns them or bumps their priority. Use the <code>:old</code> and <code>:unassigned</code> factory traits for testing.'
+  }
+];
+
+const stackItems = [
+  { name: 'Ruby', version: '3.2.2', desc: 'Programming language', color: '#e0115f', icon: 'Rb' },
+  { name: 'Rails', version: '7.1', desc: 'Web framework (API mode)', color: '#cc0000', icon: 'R' },
+  { name: 'PostgreSQL', version: '16', desc: 'Database (Alpine container)', color: '#336791', icon: 'PG' },
+  { name: 'RSpec', version: '6.1', desc: 'BDD testing framework', color: '#81c543', icon: 'RS' },
+  { name: 'FactoryBot', version: '6.4', desc: 'Test data factories', color: '#f0883e', icon: 'FB' },
+  { name: 'Pundit', version: '2.3', desc: 'Authorization (not yet enabled)', color: '#d2a8ff', icon: 'Pu' },
+  { name: 'Rubocop', version: '1.68', desc: 'Ruby linter & formatter', color: '#fff', icon: 'RC' },
+  { name: 'Docker', version: 'Compose', desc: 'Container orchestration', color: '#2496ed', icon: 'D' },
+  { name: 'Puma', version: '6.0', desc: 'Web server', color: '#f6c915', icon: 'Pm' }
+];
+
+// ═══════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════
+document.querySelectorAll('.nav button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    state.section = btn.dataset.section;
+    document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.getElementById(state.section).classList.add('active');
+    updatePrompt();
+  });
+});
+
+// ═══════════════════════════════════════
+// ARCHITECTURE
+// ═══════════════════════════════════════
+function selectModel(key) {
+  state.selectedModel = key;
+  const m = models[key];
+
+  // Highlight selected node
+  document.querySelectorAll('.node-box').forEach(n => n.classList.remove('selected'));
+  document.querySelector(`.node-box[data-model="${key}"]`).classList.add('selected');
+
+  const detail = document.getElementById('archDetail');
+  document.getElementById('detailTitle').textContent = m.name;
+
+  let html = '';
+
+  html += '<div class="detail-section"><h4>Associations</h4>';
+  m.associations.forEach(a => {
+    html += `<div class="detail-item"><div class="dot" style="background:${a.color}"></div>${a.type} :${a.target}${a.extra ? ' <span style="color:var(--text-muted);font-size:11px">(' + a.extra + ')</span>' : ''}</div>`;
+  });
+  html += '</div>';
+
+  html += '<div class="detail-section"><h4>Validations</h4>';
+  m.validations.forEach(v => {
+    html += `<div class="detail-item" style="font-size:12px;font-family:monospace">${v}</div>`;
+  });
+  html += '</div>';
+
+  if (m.scopes.length) {
+    html += '<div class="detail-section"><h4>Scopes</h4>';
+    m.scopes.forEach(s => {
+      html += `<div class="detail-item" style="font-size:12px;font-family:monospace">${s}</div>`;
+    });
+    html += '</div>';
+  }
+
+  html += '<div class="detail-section"><h4>Database Columns</h4>';
+  m.columns.forEach(c => {
+    html += `<div class="detail-item" style="font-size:12px">${c}</div>`;
+  });
+  html += '</div>';
+
+  html += '<div class="detail-section"><h4>Indexes</h4>';
+  m.indexes.forEach(i => {
+    html += `<div class="detail-item" style="font-size:12px;font-family:monospace">${i}</div>`;
+  });
+  html += '</div>';
+
+  document.getElementById('detailContent').innerHTML = html;
+  updatePrompt();
+}
+
+// ═══════════════════════════════════════
+// API ENDPOINTS
+// ═══════════════════════════════════════
+function renderApiList() {
+  const list = document.getElementById('apiList');
+  list.innerHTML = endpoints.map((ep, i) => `
+    <div class="api-item${i === state.selectedEndpoint ? ' active' : ''}" onclick="selectEndpoint(${i})">
+      <span class="method ${ep.method.toLowerCase()}">${ep.method}</span>
+      <span class="path">${ep.path.replace('/api/v1/', '')}</span>
+      <div class="desc">${ep.desc}</div>
+    </div>
+  `).join('');
+  renderApiDetail();
+}
+
+function selectEndpoint(i) {
+  state.selectedEndpoint = i;
+  renderApiList();
+  updatePrompt();
+}
+
+function renderApiDetail() {
+  const ep = endpoints[state.selectedEndpoint];
+  document.getElementById('apiDetail').innerHTML = `
+    <div class="api-detail-header">
+      <h3><span class="method ${ep.method.toLowerCase()}" style="font-size:12px">${ep.method}</span> ${ep.path}</h3>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:4px">${ep.desc}</div>
+    </div>
+    ${ep.notes ? `<div style="padding:10px 20px;background:rgba(248,81,73,0.05);border-bottom:1px solid var(--border);font-size:12px;color:var(--yellow)">${ep.notes}</div>` : ''}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border)">
+      <div style="background:var(--surface);padding:16px 20px">
+        <div style="font-size:11px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;letter-spacing:0.5px">Request</div>
+        <pre style="font-size:12px;line-height:1.5;white-space:pre-wrap;color:var(--accent)">${ep.request}</pre>
+      </div>
+      <div style="background:var(--surface);padding:16px 20px">
+        <div style="font-size:11px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;letter-spacing:0.5px">Response</div>
+        <pre style="font-size:12px;line-height:1.5;white-space:pre-wrap;color:var(--green)">${ep.response}</pre>
+      </div>
+    </div>
+  `;
+}
+
+// ═══════════════════════════════════════
+// CODE BROWSER
+// ═══════════════════════════════════════
+function renderCodeTabs() {
+  const tabs = document.getElementById('codeTabs');
+  tabs.innerHTML = codeFiles.map((f, i) => `
+    <button class="${i === state.selectedCodeFile ? 'active' : ''}" onclick="selectCodeFile(${i})">
+      <span class="file-icon">${f.icon}</span> ${f.name}
+    </button>
+  `).join('');
+  renderCodeContent();
+}
+
+function selectCodeFile(i) {
+  state.selectedCodeFile = i;
+  renderCodeTabs();
+  updatePrompt();
+}
+
+function renderCodeContent() {
+  const file = codeFiles[state.selectedCodeFile];
+  document.getElementById('codePath').textContent = file.path;
+  const lines = file.code.split('\n');
+  document.getElementById('codeContent').innerHTML = lines.map((line, i) => {
+    const lineNum = i + 1;
+    const isHighlight = file.highlights.includes(lineNum);
+    return `<div class="code-line${isHighlight ? ' highlight' : ''}"><span class="ln">${lineNum}</span><span>${line}</span></div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════
+// KNOWN ISSUES
+// ═══════════════════════════════════════
+function renderIssues() {
+  document.getElementById('issuesGrid').innerHTML = issues.map((issue, i) => `
+    <div class="issue-card">
+      <div class="issue-header" onclick="toggleIssue(${i})">
+        <span class="issue-num${issue.severity === 'medium' ? ' warn' : ''}">#${issue.num}</span>
+        <div style="flex:1">
+          <div class="issue-title">${issue.title}</div>
+          <div class="issue-file">${issue.file}</div>
+        </div>
+        <span class="issue-severity ${issue.severity}">${issue.severity}</span>
+        <button class="hint-toggle" onclick="event.stopPropagation();toggleIssue(${i})">
+          ${state.openIssues.has(i) ? 'Hide Hint' : 'Show Hint'}
+        </button>
+      </div>
+      <div class="issue-hint${state.openIssues.has(i) ? ' open' : ''}" id="hint-${i}">
+        <div class="issue-hint-content">${issue.hint}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function toggleIssue(i) {
+  if (state.openIssues.has(i)) state.openIssues.delete(i);
+  else state.openIssues.add(i);
+  renderIssues();
+  updatePrompt();
+}
+
+// ═══════════════════════════════════════
+// TECH STACK
+// ═══════════════════════════════════════
+function renderStack() {
+  document.getElementById('stackGrid').innerHTML = stackItems.map(item => `
+    <div class="stack-card">
+      <div class="stack-icon" style="background:${item.color}22;color:${item.color};border:1px solid ${item.color}44;font-size:13px">${item.icon}</div>
+      <div class="stack-info">
+        <h4>${item.name}</h4>
+        <span class="version">${item.version}</span>
+        <p>${item.desc}</p>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ═══════════════════════════════════════
+// PROMPT OUTPUT
+// ═══════════════════════════════════════
+function updatePrompt() {
+  const parts = ['This is the Demo20260303 codebase — a Rails 7.1 API for property management (workshop project).'];
+
+  if (state.section === 'architecture' && state.selectedModel) {
+    const m = models[state.selectedModel];
+    parts.push(`Currently inspecting the ${m.name} model (${m.file}).`);
+    parts.push(`Associations: ${m.associations.map(a => a.type + ' :' + a.target).join(', ')}.`);
+    parts.push(`Validations: ${m.validations.join('; ')}.`);
+  }
+
+  if (state.section === 'api') {
+    const ep = endpoints[state.selectedEndpoint];
+    parts.push(`Looking at ${ep.method} ${ep.path} — ${ep.desc}.`);
+    if (ep.notes) parts.push(ep.notes);
+  }
+
+  if (state.section === 'code') {
+    const f = codeFiles[state.selectedCodeFile];
+    parts.push(`Viewing ${f.path}.`);
+    if (f.highlights.length) parts.push(`Lines ${f.highlights.join(',')} are highlighted as areas of concern.`);
+  }
+
+  if (state.section === 'issues' && state.openIssues.size > 0) {
+    const openNums = [...state.openIssues].map(i => '#' + issues[i].num + ' ' + issues[i].title);
+    parts.push(`Expanded issues: ${openNums.join('; ')}.`);
+  }
+
+  document.getElementById('promptText').textContent = parts.join(' ');
+}
+
+function copyPrompt() {
+  const text = document.getElementById('promptText').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy Prompt'; btn.classList.remove('copied'); }, 1500);
+  });
+}
+
+// ═══════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════
+renderApiList();
+renderCodeTabs();
+renderIssues();
+renderStack();
+updatePrompt();
+</script>
+</body>
+</html>
